@@ -3,13 +3,13 @@ from flask import Flask, request
 from flask_cors import CORS
 from datetime import datetime
 
-from sqlalchemy import null
+
 
 app = Flask(__name__)
 CORS(app)
 
 
-client = pymongo.MongoClient(connection_string)
+client = pymongo.MongoClient("mongodb+srv://haggai:haggai@cluster0.jv2up.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 database = client.haggai_database
 
 
@@ -51,28 +51,35 @@ def bible_verse():
 
 @app.route("/home/devotions", methods=["POST", "GET"])
 def devotions():
+    dev_id = request.form.get("dev_id")
     if request.method == "GET":
-        dev_id = request.args.get("devotion_id")
-        dev_id = [dev_id]
+        
         devotion_ = database.devotions.RCCG
-        devotion = devotion_.find_one({"id":dev_id})
-        #l = []
-        for i in database.list_collections():
-            x = database[i["name"]].find_one({"parent_id": devotion["id"],     
-                                        "day": check_for_zero(str(date.day)),
-                                        "year": check_for_zero(str(date.year)),
-                                        "month": check_for_zero(str(date.month))})
-            if x!= None: 
-               return ({"devotion":devotion["name"],
-                        "devotion description":devotion["description"],
-                        "title":x["title"],
-                        "items":x["mdevotionItems"],
-                        "audio_url":x["audio_url"],
-                         "image_url":x["image_url"],
-                          "page_url":x["page_url"]}, 200)
-            
+        devotions = devotion_.find_one({"id":dev_id})
+        print(devotions)
+        l = {}
+        try:
+            for i in database.list_collections():
+                x = database[i["name"]].find_one({"parent_id": "1ZKzdEQC83ZGwVGqL5Ou",     
+                                            "day": check_for_zero(str(date.day)),
+                                            "year": check_for_zero(str(date.year)),
+                                            "month": check_for_zero(str(date.month))})
+                if x!= None: 
+                    l["items"] = ({"devotion":devotions["name"],
+                            "devotion description":devotions["description"],
+                            "title":x["title"],
+                            "items":x["mdevotionItems"],
+                            "audio_url":x["audio_url"],
+                            "image_url":x["image_url"],
+                            "page_url":x["page_url"]}, 200)
+            return l["items"]
+        except KeyError:
+            return {"message":"No devotions for today", 
+                    "devotion":"chi",#devotions["name"],
+                    "devotion description":"me",#devotions["description"]
+                    }
 
-        return ({"message":"no devotion for today"}, 205)
+        
 
     if request.method == "POST":
         dev = request.form.get("")
