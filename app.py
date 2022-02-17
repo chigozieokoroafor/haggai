@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 
-client = pymongo.MongoClient("mongodb+srv://haggai:haggai@cluster0.jv2up.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+client = pymongo.MongoClient(connection_string)
 database = client.haggai_database
 
 
