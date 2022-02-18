@@ -51,7 +51,7 @@ def bible_verse():
 
 @app.route("/home/devotions", methods=["POST", "GET"])
 def devotions():
-    dev_id = request.form.get("dev_id")
+    dev_id = request.args.get("dev_id")
     if request.method == "GET":
         
         devotion_ = database.devotions.RCCG
