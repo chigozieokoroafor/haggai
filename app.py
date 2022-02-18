@@ -9,8 +9,8 @@ app = Flask(__name__)
 CORS(app)
 
 
-client = pymongo.MongoClient("mongodb+srv://haggai:haggai@cluster0.jv2up.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-database = client.haggai_database
+client = pymongo.MongoClient(connection string)
+database = client.database
 
 
 def check_for_zero(x):
