@@ -1,3 +1,4 @@
+from email.mime import audio
 import pymongo 
 from flask import Flask, request,Response, jsonify
 from flask_cors import CORS
@@ -26,14 +27,14 @@ def check_for_zero(x):
     else: return x
 
 def check_date(datetime_):
-    today = datetime.today().date()
+    today = datetime.utcnow().date()
     d_ = datetime.strptime(datetime_, "%Y-%m-%d %H:%M:%S")
     date = d_.date()
     check = today > date
     return check
 
 
-date = datetime.now()
+date = datetime.utcnow()
 date_ = date.strftime("%Y-%m-%d %H:%M:%S" )
 
 
@@ -48,7 +49,10 @@ def bible_verse():
             
             return ({"verse_of_the_day":verse["verse_body"], 
                          "verse_title":verse["verse_title"],
-                         "date_uploaded":verse["date_uploaded"],
+                         "day":verse["day"], 
+                         "month":verse["month"],
+                         "year": verse["year"],
+                         "image_url":verse["image_url"],
                          "type":"success"}, 200)
 
             
@@ -60,7 +64,7 @@ def bible_verse():
         verse_body = request.json.get("verse_body")
         day_to_be_shown = request.json.get("day_to_be_shown")
         month_to_be_shown = request.json.get("month_to_be_shown")
-        date_uploaded = date_
+        year_to_be_shown = request.json.get("year_to_be_shown")
         img_url = request.json.get("image_url")
 
         daily_verse.insert_one({
@@ -68,7 +72,7 @@ def bible_verse():
                                 "verse_body":verse_body,
                                 "day":day_to_be_shown,
                                 "month":month_to_be_shown,
-                                "date_uploaded":date_uploaded,
+                                "year":year_to_be_shown,
                                 "image_url": img_url
                                 })
         
@@ -184,9 +188,14 @@ def home_mixlir():
 @app.route("/devotions", methods=["GET", "POST"])
 def devotion():
     if request.method == "GET":
-
-    
         return("work in progress", 200)
+
+
+@app.route("/home/audio", methods=["GET", "POST"])
+def home_audio():
+    audio_db = database["audio"]
+    if request.method == "GET":
+        return {"message":"working on it "}, 400
 
 
 #for the themes 
