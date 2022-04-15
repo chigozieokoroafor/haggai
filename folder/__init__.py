@@ -1,7 +1,8 @@
 from flask import Flask, request 
 from flask_cors import CORS
 from datetime import datetime 
-from .devotion_types.devotion_types import devotion_types_bp 
+from .devotion_types.devotion_types import devotion_types_bp
+from .devotions.devotions import devotions_bp 
 
 def check_for_zero(x):
     num = []
@@ -33,6 +34,6 @@ app  = Flask(__name__)
 CORS(app)
 
 app.register_blueprint(devotion_types_bp, url_prefix='/devotion_types')
-
+app.register_blueprint(devotions_bp, url_prefix='/devotions')
 from folder import routes
 
