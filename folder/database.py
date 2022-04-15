@@ -11,3 +11,5 @@ theme_db = database.themes
 sermon_db = database["sermon_notes"]
 image_db = database["images"]
 latest_db = database["latest"]
+devotion_types = database.devotion_types
+devotions = database.devotions

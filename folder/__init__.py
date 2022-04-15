@@ -1,9 +1,7 @@
 from flask import Flask, request 
 from flask_cors import CORS
 from datetime import datetime 
-#import json
-#from requests import Request, Session
-#from flask_apscheduler import APScheduler
+from .devotion_types.devotion_types import devotion_types_bp 
 
 def check_for_zero(x):
     num = []
@@ -34,7 +32,7 @@ date_ = date.strftime("%Y-%m-%d %H:%M:%S" )
 app  = Flask(__name__)
 CORS(app)
 
-
+app.register_blueprint(devotion_types_bp, url_prefix='/devotion_types')
 
 from folder import routes
 
