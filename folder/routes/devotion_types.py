@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from ..database import devotion_types
+from folder.database import devotion_types
 
 
 devotion_types_bp = Blueprint('devotion_types', __name__)
