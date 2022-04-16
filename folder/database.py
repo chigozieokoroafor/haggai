@@ -1,6 +1,6 @@
 import pymongo
 
-client = pymongo.MongoClient("mongodb+srv://haggai:haggai@cluster0.jv2up.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+client = pymongo.MongoClient(connectionString)
 database = client.haggai_database
 daily_verse_db = database.daily_verse
 devotion_list_db = database.devotions.RCCG
