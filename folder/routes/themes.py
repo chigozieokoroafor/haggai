@@ -11,7 +11,7 @@ theme = Blueprint("themes", __name__, url_prefix="/themes")
 date = datetime.utcnow()
 date_ = date.strftime("%Y-%m-%d %H:%M:%S" ) 
 
-@theme.route("/themes", methods=["POST", "GET", "PUT"])
+@theme.route("/", methods=["POST", "GET", "PUT"])
 def themes():
     theme_list_ = []
     if request.method == "GET":

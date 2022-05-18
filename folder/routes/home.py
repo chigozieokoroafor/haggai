@@ -1,13 +1,16 @@
+from email import message
 from flask import Blueprint
 from datetime import datetime
 
 from flask import request
 from bson import ObjectId 
-from folder.database import daily_verse_db, devotion_list_db, mixlir_db, audio_db, image_db
+from folder.database import daily_verse_db, devotion_list_db, mixlir_db, audio_db, image_db, live_videos_db, videos_db, latest_db
 from folder.functions import check_for_zero, check_date
 
 import pymongo
+
 # create extra endpoints for the daily verses to ad
+#call all the home features in one endpoint
 home = Blueprint("home", __name__, url_prefix="/home")
 
 date = datetime.utcnow()
@@ -18,23 +21,70 @@ def base():
     return "this is the home"
 
 
-@home.route("/today_bible_verse", methods=["GET", "POST"])
-def bible_verse():
+#this endpoint is for getting all items 
+@home.route("/all", methods=["GET", "POST", "PUT", "DELETE"])
+def all_items():
     
     if request.method == "GET":
-        try:
-            verse = daily_verse_db.find_one({"day": str(check_for_zero(date.day)),
+        verse = daily_verse_db.find_one({"day": str(check_for_zero(date.day)),
                                                 "year": str(date.year),
                                                 "month": str(check_for_zero(date.month))})
-            verse["_id"] = str(ObjectId(verse["_id"]))
-            return (verse, 200)
+        if verse != None:
+            verse["verse_id"] = str(ObjectId(verse["_id"]))
+            verse.pop("_id")
+            verse_message = {"verse":verse}, 
+        else: 
+            verse_message = {"message":"no verse for the day"}
+
+        latest_video = latest_db.find({"type":"video"})
+        latest_audio = latest_db.find({"type":"audio"})
+        latest_image = latest_db.find({"type":"image"})
+        
+
+        latest_video_list = []
+        latest_audio_list = []
+        latest_image_list = []
+
+        for video_item in latest_video:
+            video_item.pop("_id")
+            latest_video_list.append(video_item)
+        
+        for audio_item in latest_audio:
+            audio_item.pop("_id")
+            latest_audio_list.append(audio_item)
+        
+        for image_item in latest_image:
+            image_item.pop("_id")
+            latest_image_list.append(image_item)
+
+
+        mixlir = mixlir_db.find_one()
+        if mixlir != None:
+            mixlir["mixlir_id"] = mixlir["_id"]
+            mixlir.pop("_id") 
+            mix = {"message":mixlir}
+        else:
+            mix = {"message":"No mixlir available"}
+
+        data = {
+            "daily_verse":verse_message,
+            "live_videos":latest_video_list,
+            "latest_images":latest_image_list,
+            "latest_audios":latest_audio_list,
+            "mixlir":mix
+        }
+
+        return data, 200
+
+
+        #return verse_message, 200
 
             
-        except TypeError:
-            return ({"message":"No verse for the day", "type":"error"}, 400)
+        
 
-
-
+#this is the daily verse endpoint 
+@home.route("/daily_verse", methods=["POST", "PUT", "DELETE", "GET"])
+def dail():
     if request.method == "POST":
         verse_title = request.json.get("verse_title")
         verse_body = request.json.get("verse_body")
@@ -42,8 +92,10 @@ def bible_verse():
         month_to_be_shown = request.json.get("month_to_be_shown")
         year_to_be_shown = request.json.get("year_to_be_shown")
         img_url = request.json.get("image_url")
+        verse_id  = request.json.get("image_url")
 
         daily_verse_db.insert_one({
+                                "_id":verse_id,
                                 "verse_title":verse_title,
                                 "verse_body":verse_body,
                                 "day":day_to_be_shown,
@@ -53,6 +105,35 @@ def bible_verse():
                                 })
         
         return ({"message":"just uploaded successfully", "type":"static"}, 200)
+    
+    if request.method == "GET":
+        all_verses = daily_verse_db.find()
+        verse_list = []
+        for verse in all_verses:
+            verse["verse_id"] = verse["_id"]
+            verse.pop("_id")
+            verse_list.append(verse)
+        
+        return {"verse_list":verse_list}, 200
+
+    if request.method == "PUT":
+        info = request.json
+        id = info.get("verse_id")
+        keys = [i for i in info.keys()]
+        data = {}
+        for i in keys:
+            if info.get(i) != "":
+                data[i] = info.get(i)
+        data.pop("verse_id")
+        daily_verse_db.find_one_and_update({"_id":id}, {"$set":data})
+        return {"message":"updated successfully "}, 200
+
+
+    if request.method == "DELETE":
+        args = request.args.get("verse_id")
+        daily_verse_db.find_one_and_delete({"_id":args})
+        return {"message":"verse deleted"}, 200
+    
 
 
 @home.route("/devotions", methods=["GET", "POST"])
@@ -90,12 +171,12 @@ def home_devotions():
 
 
 #there should be a maximum of 5 videos in this Db
-@home.route("/live_videos", methods= ["GET", "PUT"])
+@home.route("/live_videos", methods= ["GET", "PUT", "POST", "DELETE"])
 def live_video():
     
     
     if request.method == "GET":
-        videos = videos.find()
+        videos = live_videos_db.find()
         video_list = []
         for video_ in videos:
             video_list.append({"live_video_url":video_["url"],
@@ -105,31 +186,27 @@ def live_video():
         
     if request.method == "PUT":
         try:
+            #items to be collected  "id", "video_url", "video_name", "isLive"
             url=  request.json.get("video_url")
             name = request.json.get("video_name")
             isLive = request.json.get("isLive")
+            id  = request.json.get("id")
+            data = {"url":url, "name":name}
+            for i in data.keys():
+                if data[i] =="":
+                    data.pop(i)
+            live_videos_db
+
             
-
-            if url==None or name==None or isLive==None:
-                return ({"message":"nothing was provided"}, 400)
-
-            else:
-                for video_info in videos.find():
-                    if check_date(video_info["datetime"]) == True:
-                        videos.find_one_and_delete(video_info)
-                            
-                if videos.count_documents({})<5:
-                    item = {"name":name, "url":url, "datetime":date_, "isLive":isLive}
-                    videos.insert_one(item)
-                    return({"message":"added successfully"}, 200)
-                else:
-                    return ({"message":"maximum items reached"}, 400)
                         
             
 
         except AttributeError:
             return {"message":"Something went wrong"}, 400
+    
+    if request.method == "POST":
 
+        pass
 
 
 @home.route("/live_mixlir", methods=["GET", "POST", "PUT"])

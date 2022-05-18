@@ -18,3 +18,6 @@ def check_date(datetime_):
     check = today > date
     return check
   
+def getToday():
+    today = datetime.utcnow()
+    return today

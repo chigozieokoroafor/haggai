@@ -13,6 +13,8 @@ from folder.routes.images import image
 #from flask_apscheduler import APScheduler
     
 
+from folder.functions import getToday
+
 
 
 app  = Flask(__name__)
