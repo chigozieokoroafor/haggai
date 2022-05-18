@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from folder.database import devotion_list_db
 
+
 devotions = Blueprint("devotions", __name__, url_prefix="/devotion")
 
 @devotions.route("/")
@@ -16,4 +17,16 @@ def devotion(parent_id):
             return("work in progress", 200)
         else: return "shit" 
 
+
+# @devotions.route('/', methods=["GET"])
+# def fetch_devotions():
+#   try:
+#     devotions = []
+#     for devotion in devotion_collection.find():
+#       devotion['_id'] = str(devotion['_id'])
+#       devotions.append(devotion)
+#     return ({ 'status': 'success', 'message': 'Devotions', 'devotions': devotions })
+#   except Exception as e:
+#     print('Error getting devotions')
+#     return ({ 'status': 'error', 'message': str(e)})
 

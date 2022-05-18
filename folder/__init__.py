@@ -8,12 +8,11 @@ from folder.routes.devotions import devotions
 from folder.routes.home import home 
 from folder.routes.videos import video
 from folder.routes.images import image
+from .routes.devotion_types import devotion_types_bp
 #import json
 #from requests import Request, Session
 #from flask_apscheduler import APScheduler
     
-
-from folder.functions import getToday
 
 
 
@@ -28,4 +27,5 @@ app.register_blueprint(blueprint=devotions, name="devotions")
 app.register_blueprint(blueprint=home, name="home")
 app.register_blueprint(blueprint=video, name="videos")
 app.register_blueprint(blueprint=image, name="images")
+app.register_blueprint(devotion_types_bp, url_prefix='/devotion_types')
 
