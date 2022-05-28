@@ -124,46 +124,6 @@ def dail():
         return {"message":"verse deleted"}, 200
     
 
-
-#there should be a maximum of 5 videos in this Db
-@home.route("/live_videos", methods= ["GET", "PUT", "POST", "DELETE"])
-def live_video():
-    
-    
-    if request.method == "GET":
-        videos = live_videos_db.find()
-        video_list = []
-        for video_ in videos:
-            video_list.append({"live_video_url":video_["url"],
-                    "live_video_name":video_["name"],
-                    "isLive":True})
-        return {"items":video_list}, 200
-        
-    if request.method == "PUT":
-        try:
-            #items to be collected  "id", "video_url", "video_name", "isLive"
-            url=  request.json.get("video_url")
-            name = request.json.get("video_name")
-            isLive = request.json.get("isLive")
-            id  = request.json.get("id")
-            data = {"url":url, "name":name}
-            for i in data.keys():
-                if data[i] =="":
-                    data.pop(i)
-            live_videos_db
-
-            
-                        
-            
-
-        except AttributeError:
-            return {"message":"Something went wrong"}, 400
-    
-    if request.method == "POST":
-
-        pass
-
-
 @home.route("/live_mixlir", methods=["GET", "POST", "PUT"])
 def home_mixlir():
     
@@ -199,31 +159,6 @@ def home_mixlir():
                                         "date_uploaded": date_}})
         return({"message":"updated successfully"}, 200)
 
-@home.route("/audio", methods=["GET"])
-def home_audio():
-    if request.method == "GET":
-        data = audio_db.find().sort("rank", pymongo.DESCENDING).limit(5)
-        data_ = []
-        for item in data:
-            d = {}
-            d["audio_name"] = item["audio_name"]
-            d["audio_url"] = item["audio_url"]
-            d["rank"] = item["rank"]
-            d["parent_folder"] = item["parent_folder"]
-            data_.append(d)
-        return {"items":data_}, 200
-
-@home.route("/sermon_notes", methods=["GET"])
-def home_sermon():
-    info = request.json
-    return {"message":"in progress"}, 200
-
-
-
-@home.route("/images", methods=["GET"])
-def home_images():
-    images = image_db.find()
-    return {"message":"in progress"}, 200
 
 
 

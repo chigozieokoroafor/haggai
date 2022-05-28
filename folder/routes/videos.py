@@ -238,6 +238,7 @@ def items(first, second, third, fourth, fifth):
         timestamp = info.get("timestamp")
         id = info.get("id")
         latest = info.get("latest")
+        
 
         keys = [i for i in info.keys()]
         data = {}
@@ -328,6 +329,9 @@ def items(first, second, third, fourth, fifth):
 
     if request.method == "GET":
         doc_list=[]
+        #live_videos = latest_db.find({"isLive":True})
+        #latest_items = [live_video for live_video in live_videos]
+        
         if first != "_":
             if second != "_":
                 if third != "_":

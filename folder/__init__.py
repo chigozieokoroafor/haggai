@@ -1,5 +1,4 @@
-from email.mime import audio
-from flask import Flask, request 
+from flask import Flask
 from flask_cors import CORS
 from datetime import datetime
 from folder.routes.audios import audios #, themes, devotions, home, videos, images
@@ -9,6 +8,7 @@ from folder.routes.home import home
 from folder.routes.videos import video
 from folder.routes.images import image
 from .routes.devotion_types import devotion_types_bp
+from folder.routes.mixlir import mixlir
 #import json
 #from requests import Request, Session
 #from flask_apscheduler import APScheduler
@@ -28,4 +28,5 @@ app.register_blueprint(blueprint=home, name="home")
 app.register_blueprint(blueprint=video, name="videos")
 app.register_blueprint(blueprint=image, name="images")
 app.register_blueprint(devotion_types_bp, url_prefix='/devotion_types')
+app.register_blueprint(blueprint=mixlir, name="mixlir")
 
