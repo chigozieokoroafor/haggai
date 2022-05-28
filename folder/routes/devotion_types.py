@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from folder.database import devotion_types
 
 
-devotion_types_bp = Blueprint('devotion_types', __name__)
+devotion_types_bp = Blueprint('devotion_types', __name__, url_prefix="/api/haggai/dev_types")
 
 @devotion_types_bp.route('/', methods=['GET'])
 def fetch_devotion_types():
@@ -21,6 +21,7 @@ def create_devotion_type():
   try:
       req_json = request.json
       insert_result = devotion_types.insert_one({
+        '_id':req_json.get('_id'),
         'description': req_json.get('description'),
         'name': req_json.get('name'),
         'image_url': req_json.get('image_url')

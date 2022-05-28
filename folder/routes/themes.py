@@ -6,7 +6,7 @@ from datetime import datetime
 
 
 
-theme = Blueprint("themes", __name__, url_prefix="/themes")
+theme = Blueprint("themes", __name__, url_prefix="/api/haggai/theme")
 
 date = datetime.utcnow()
 date_ = date.strftime("%Y-%m-%d %H:%M:%S" ) 

@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from folder.database import devotion_list_db
 
 
-devotions = Blueprint("devotions", __name__, url_prefix="/devotion")
+devotions = Blueprint("devotions", __name__, url_prefix="/api/haggai/devotion")
 
 @devotions.route("/")
 def base():

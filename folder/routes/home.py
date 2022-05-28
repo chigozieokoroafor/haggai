@@ -10,8 +10,9 @@ from folder.functions import check_for_zero, check_date
 import pymongo
 
 # create extra endpoints for the daily verses to ad
+
 #call all the home features in one endpoint
-home = Blueprint("home", __name__, url_prefix="/home")
+home = Blueprint("home", __name__, url_prefix="/api/haggai/home")
 
 date = datetime.utcnow()
 date_ = date.strftime("%Y-%m-%d %H:%M:%S" ) 
@@ -22,19 +23,15 @@ def base():
 
 
 #this endpoint is for getting all items 
-@home.route("/all", methods=["GET", "POST", "PUT", "DELETE"])
+@home.route("/all", methods=["GET"])
 def all_items():
     
     if request.method == "GET":
         verse = daily_verse_db.find_one({"day": str(check_for_zero(date.day)),
                                                 "year": str(date.year),
-                                                "month": str(check_for_zero(date.month))})
-        if verse != None:
-            verse["verse_id"] = str(ObjectId(verse["_id"]))
-            verse.pop("_id")
-            verse_message = {"verse":verse}, 
-        else: 
-            verse_message = {"message":"no verse for the day"}
+                                                "month": str(check_for_zero(date.month))})            
+        verse_message = {"verse":verse}
+
 
         latest_video = latest_db.find({"type":"video"})
         latest_audio = latest_db.find({"type":"audio"})
@@ -46,41 +43,35 @@ def all_items():
         latest_image_list = []
 
         for video_item in latest_video:
-            video_item.pop("_id")
+            
             latest_video_list.append(video_item)
         
         for audio_item in latest_audio:
-            audio_item.pop("_id")
+            
             latest_audio_list.append(audio_item)
         
         for image_item in latest_image:
-            image_item.pop("_id")
+            
             latest_image_list.append(image_item)
 
 
         mixlir = mixlir_db.find_one()
-        if mixlir != None:
-            mixlir["mixlir_id"] = mixlir["_id"]
-            mixlir.pop("_id") 
-            mix = {"message":mixlir}
+        if mixlir==None:
+            mix = {}
         else:
-            mix = {"message":"No mixlir available"}
+            mix = mixlir
 
         data = {
             "daily_verse":verse_message,
             "live_videos":latest_video_list,
             "latest_images":latest_image_list,
             "latest_audios":latest_audio_list,
-            "mixlir":mix
+            
         }
+        data["mixlir"] = mix
 
         return data, 200
 
-
-        #return verse_message, 200
-
-            
-        
 
 #this is the daily verse endpoint 
 @home.route("/daily_verse", methods=["POST", "PUT", "DELETE", "GET"])
@@ -88,11 +79,11 @@ def dail():
     if request.method == "POST":
         verse_title = request.json.get("verse_title")
         verse_body = request.json.get("verse_body")
-        day_to_be_shown = request.json.get("day_to_be_shown")
-        month_to_be_shown = request.json.get("month_to_be_shown")
-        year_to_be_shown = request.json.get("year_to_be_shown")
+        day_to_be_shown = request.json.get("day")
+        month_to_be_shown = request.json.get("month")
+        year_to_be_shown = request.json.get("year")
         img_url = request.json.get("image_url")
-        verse_id  = request.json.get("image_url")
+        verse_id  = request.json.get("_id")
 
         daily_verse_db.insert_one({
                                 "_id":verse_id,
@@ -104,70 +95,34 @@ def dail():
                                 "image_url": img_url
                                 })
         
-        return ({"message":"just uploaded successfully", "type":"static"}, 200)
+        return ({"message":"just uploaded successfully"}, 200)
     
     if request.method == "GET":
         all_verses = daily_verse_db.find()
         verse_list = []
         for verse in all_verses:
-            verse["verse_id"] = verse["_id"]
-            verse.pop("_id")
             verse_list.append(verse)
         
         return {"verse_list":verse_list}, 200
 
     if request.method == "PUT":
         info = request.json
-        id = info.get("verse_id")
+        id = info.get("_id")
         keys = [i for i in info.keys()]
         data = {}
         for i in keys:
             if info.get(i) != "":
                 data[i] = info.get(i)
-        data.pop("verse_id")
+        data.pop("_id")
         daily_verse_db.find_one_and_update({"_id":id}, {"$set":data})
-        return {"message":"updated successfully "}, 200
+        return {"message":"updated successfully"}, 200
 
 
     if request.method == "DELETE":
-        args = request.args.get("verse_id")
+        args = request.args.get("_id")
         daily_verse_db.find_one_and_delete({"_id":args})
         return {"message":"verse deleted"}, 200
     
-
-
-@home.route("/devotions", methods=["GET", "POST"])
-def home_devotions():
-    
-    
-    L =[]
-    if request.method == "GET":
-        try:
-            dev_id = request.args["devotion_id"]
-            dev_list = dev_id.split(", ")
-            #print(dev_list)
-            if len(dev_list)>1:
-                for _id in dev_list:
-                    devotion =devotion_list_db.find_one({"id":_id})
-                    L.append({"Devotion Name": devotion["name"],
-                            "Devotion Description":devotion["description"],
-                            "Devotion Type": devotion["type"]})
-                
-                return ({"items":L, "type":"success"}, 200)
-            
-            elif len(dev_list)==1:
-                devotion = devotion_list_db.find_one({"id":dev_id})
-                return ({"Devotion Name": devotion["name"],
-                        "Devotion Description":devotion["description"],
-                        "Devotion Type": devotion["type"],
-                        "type":"success"}, 200)  
-        except:
-            return ({"message":"no devotion_id provided", "type":"error"}, 400) 
-        
-
-
-    if request.method == "POST":
-        return ({"message":"work in progress", "type":"static"}, 204)
 
 
 #there should be a maximum of 5 videos in this Db
