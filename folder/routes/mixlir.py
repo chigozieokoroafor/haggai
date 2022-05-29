@@ -6,7 +6,7 @@ from flask import request
 
 mixlir = Blueprint("mixlir", __name__, url_prefix="/api/v1/haggai")
 
-@mixlir.route("/live_mixlir", methods=["GET", "POST", "PUT"])
+@mixlir.route("/live_mixlir", methods=["GET", "POST", "PUT", "DELETE"])
 def home_mixlir():
     
     if request.method == "GET":
@@ -48,3 +48,8 @@ def home_mixlir():
                                       {"$set":data})
 
         return({"message":"updated successfully"}, 200)
+
+    if request.method == "DELETE":
+        args = request.args.get("_id")
+        mixlir_db.find_one_and_delete({"_id":args})
+        return {"message":"Mixlir Deleted"}, 200

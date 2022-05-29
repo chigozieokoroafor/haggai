@@ -50,7 +50,7 @@ def folder(first, second, third, fourth):
                                     return {"message":"folder already exists", "status":"error"}, 400 
                             else:
                                 data["isFolder"] = True
-                                data["is_finalFolder"] = True
+                                data["is_finalFolder"] = False
                                 data["_id"] = id
                                 videos_db[first][second][third].insert_one(data)
                                 
@@ -59,7 +59,7 @@ def folder(first, second, third, fourth):
                             return {"message":"folder already exists", "status":"error"}, 400
                     else:
                         data["isFolder"] = True
-                        data["is_finalFolder"] = True
+                        data["is_finalFolder"] = False
                         data["_id"] = id
                         videos_db[first][second].insert_one(data)
                         
@@ -69,7 +69,7 @@ def folder(first, second, third, fourth):
                     return {"message":"folder already exists", "status":"error"}, 400
             else:
                 data["isFolder"] = True
-                data["is_finalFolder"] = True
+                data["is_finalFolder"] = False
                 data["_id"] = id
                 videos_db[first].insert_one(data)
                 
@@ -77,7 +77,7 @@ def folder(first, second, third, fourth):
             
         else:
             data["isFolder"] = True
-            data["is_finalFolder"] = True
+            data["is_finalFolder"] = False
             data["_id"] = id
             videos_db.insert_one(data)
             return {"message":"Folder created", "status":"success"}, 200

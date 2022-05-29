@@ -106,7 +106,7 @@ def folder(first, second, third, fourth):
                                 folders_.append(folder)
                             if latest != False:
                                 latest_db.delete_many({"type":"video"})
-                                latest_items = image_db[first][second][third][fourth][id].find({"isFolder":False}).limit(5)
+                                latest_items = image_db[first][second][third][fourth][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                                 item = []
                                 for items in latest_items:
                                     items["type"] = "image"
@@ -123,7 +123,7 @@ def folder(first, second, third, fourth):
                                 folders_.append(folder)
                             if latest != False:
                                 latest_db.delete_many({"type":"video"})
-                                latest_items = image_db[first][second][third][id].find({"isFolder":False})
+                                latest_items = image_db[first][second][third][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                                 item = []
                                 for items in latest_items:
                                     items["type"] = "image"
@@ -139,7 +139,7 @@ def folder(first, second, third, fourth):
                             folders_.append(folder)
                         if latest != False:
                             latest_db.delete_many({"type":"video"})
-                            latest_items = image_db[first][second][id].find({"isFolder":False})
+                            latest_items = image_db[first][second][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                             item = []
                             for items in latest_items:
                                 items["type"] = "image"
@@ -155,7 +155,7 @@ def folder(first, second, third, fourth):
                         folders_.append(folder)
                     if latest != False:
                         latest_db.delete_many({"type":"video"})
-                        latest_items = image_db[first][id].find({"isFolder":False})
+                        latest_items = image_db[first][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                         item = []
                         for items in latest_items:
                             items["type"] = "image"
@@ -171,7 +171,7 @@ def folder(first, second, third, fourth):
                     folders_.append(folder)
                 if latest != False:
                     latest_db.delete_many({"type":"video"})
-                    latest_items = image_db[id].find({"isFolder":False})
+                    latest_items = image_db[id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                     item = []
                     for items in latest_items:
                         items["type"] = "image"
@@ -253,7 +253,7 @@ def items(first, second, third, fourth, fifth):
                             image_db[first][second][third][fourth].find_one_and_update({"_id":fifth, "isFolder":True}, {"$set":{"is_finalFolder":True}})
                             if latest == True:
                                 latest_db.delete_many({"type":"video"})
-                                data = image_db[first][second][third][fourth][fifth].find({"isFolder":False})
+                                data = image_db[first][second][third][fourth][fifth].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                                 data_list = []
                                 for item in data:
                                     item["type"] = "image"
@@ -267,7 +267,7 @@ def items(first, second, third, fourth, fifth):
                             image_db[first][second][third].find_one_and_update({"_id":fourth, "isFolder":True}, {"$set":{"is_finalFolder":True}})
                             if latest == True:
                                 latest_db.delete_many({"type":"video"})
-                                data = image_db[first][second][third][fourth].find({"isFolder":False})
+                                data = image_db[first][second][third][fourth].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                                 data_list = []
                                 for item in data:
                                     item["type"] = "image"
@@ -281,7 +281,7 @@ def items(first, second, third, fourth, fifth):
                         image_db[first][second].find_one_and_update({"_id":third, "isFolder":True}, {"$set":{"is_finalFolder":True}})
                         if latest == True:
                             latest_db.delete_many({"type":"video"})
-                            data = image_db[first][second][third].find({"isFolder":False})
+                            data = image_db[first][second][third].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                             data_list = []
                             for item in data:
                                 item.pop("_id")
@@ -295,7 +295,7 @@ def items(first, second, third, fourth, fifth):
                     image_db[first].find_one_and_update({"_id":second, "isFolder":True}, {"$set":{"is_finalFolder":True}})
                     if latest == True:
                         latest_db.delete_many({"type":"video"})
-                        data = image_db[first][second].find({"isFolder":False})
+                        data = image_db[first][second].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                         data_list = []
                         for item in data:
                             item.pop("_id")
@@ -309,7 +309,7 @@ def items(first, second, third, fourth, fifth):
                 image_db.find_one_and_update({"_id":first, "isFolder":True}, {"$set":{"is_finalFolder":True}})
                 if latest == True:
                     latest_db.delete_many({"type":"video"})
-                    data = image_db[first].find({"isFolder":False})
+                    data = image_db[first].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                     data_list = []
                     for item in data:
                         item.pop("_id")
@@ -410,7 +410,7 @@ def items(first, second, third, fourth, fifth):
                                     lis_.pop("_id")
                                     doc_list.append(lis_)
                                 if latest == True:
-                                    data = image_db[first][second][third][fourth].find()
+                                    data = image_db[first][second][third][fourth].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                                     data_list = []
                                     for item in data:
                                         item["type"] = "image"
@@ -426,7 +426,7 @@ def items(first, second, third, fourth, fifth):
                                 lis_.pop("_id")
                                 doc_list.append(lis_)
                             if latest == True:
-                                data = image_db[first][second][third].find()
+                                data = image_db[first][second][third].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                                 data_list = []
                                 for item in data:
                                     item["type"] = "image"
@@ -442,7 +442,7 @@ def items(first, second, third, fourth, fifth):
                             lis_.pop("_id")
                             doc_list.append(lis_)
                         if latest == True:
-                            data = image_db[first][second].find()
+                            data = image_db[first][second].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                             data_list = []
                             for item in data:
                                 item["type"] = "image"
@@ -458,7 +458,7 @@ def items(first, second, third, fourth, fifth):
                         lis_.pop("_id")
                         doc_list.append(lis_)
                     if latest == True:
-                        data = image_db[first][second].find()
+                        data = image_db[first].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
                         data_list = []
                         for item in data:
                             item["type"] = "image"
