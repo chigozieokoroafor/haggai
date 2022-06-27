@@ -10,7 +10,7 @@ from folder.routes.images import image
 from .routes.devotion_types import devotion_types_bp
 from folder.routes.mixlir import mixlir
 from folder.routes.daily_verse import verse
-from folder.routes.sermon import sermon
+from folder.routes.sermon import sermons
 
     
 
@@ -30,4 +30,4 @@ app.register_blueprint(blueprint=image, name="images")
 app.register_blueprint(devotion_types_bp, url_prefix='/devotion_types')
 app.register_blueprint(blueprint=mixlir, name="mixlir")
 app.register_blueprint(blueprint=verse, name="daily_verse")
-app.register_blueprint(blueprint=sermon, name="sermon")
+app.register_blueprint(blueprint=sermons, name="sermons")

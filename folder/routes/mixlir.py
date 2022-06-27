@@ -4,7 +4,7 @@ from flask import request
 #from bson import ObjectId
 
 
-mixlir = Blueprint("mixlir", __name__, url_prefix="/api/v1/haggai")
+mixlir = Blueprint("mixlir", __name__, url_prefix="/api/haggai")
 
 @mixlir.route("/live_mixlir", methods=["GET", "POST", "PUT", "DELETE"])
 def home_mixlir():
@@ -14,6 +14,7 @@ def home_mixlir():
         if item == None:
             return {"mixlir":{}}, 200
         else:
+            #item.pop("")
             return {"mixlir":item}, 200
 
     if request.method == "POST":
@@ -37,7 +38,6 @@ def home_mixlir():
             message = "Existing Mixlir Available"
             return {"message":message}, 400
         
-
     if request.method == "PUT":
         keys = [i for i in info.keys()]
         data = {}

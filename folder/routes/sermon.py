@@ -2,16 +2,25 @@ from flask import Blueprint
 from flask import request
 from folder.database import sermon_db
 
-sermon = Blueprint("sermon", __name__, url_prefix="/api/v1/haggai")
+sermons = Blueprint("sermons", __name__, url_prefix="/api/haggai")
 
-@sermon.route("/sermon", methods = ["GET", "POST", "PUT", "DELETE"])
+@sermons.route("/sermon", methods = ["GET", "POST", "PUT", "DELETE"])
 def sermon():
     if request.method == "GET":
         all_sermons = sermon_db.find()
         sermons = [i for i in all_sermons]
-        return {"sermon_list":sermons}, 200
+        sotw = sermon_db.find_one({"sermon_of_the_week":True})
+        if sotw == None:
+            sotw_ = {}
+        else:
+            sotw_ = sotw
+
+        return {"sermon_list":sermons, "sermon_of_the_week":sotw_}, 200
+        
     if request.method == "POST":
         info = request.json
+        week_sermon = info.get("sermon_of_the_week")
+
         keys = [i for i in info.keys()]
         data = {}
 

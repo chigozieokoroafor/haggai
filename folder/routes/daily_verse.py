@@ -1,7 +1,9 @@
 from flask import Blueprint, request
+import pymongo
 from folder.database import daily_verse_db
+from folder.functions import check_for_zero
 
-verse = Blueprint("daily_verse", __name__, url_prefix="/api/v1/haggai")
+verse = Blueprint("daily_verse", __name__, url_prefix="/api/haggai")
 
 #this is the daily verse endpoint 
 @verse.route("/daily_verse", methods=["POST", "PUT", "DELETE", "GET"])
@@ -19,17 +21,29 @@ def dail():
                                 "_id":verse_id,
                                 "verse_title":verse_title,
                                 "verse_body":verse_body,
-                                "day":day_to_be_shown,
-                                "month":month_to_be_shown,
-                                "year":year_to_be_shown,
+                                "day":int(day_to_be_shown),
+                                "month":int(month_to_be_shown),
+                                "year":int(year_to_be_shown),
                                 "image_url": img_url
                                 })
         
         return ({"message":"uploaded successfully"}, 200)
     
     if request.method == "GET":
-        all_verses = daily_verse_db.find()
-        limit = request.args.get("limit")
+        
+        page = request.args.get("page")
+        day = request.args.get("day")
+        month = request.args.get("month")
+        year = request.args.get("year")
+        
+        #do the pagination thing here, starts from 0
+        skip_value = 30 * int(page)
+
+        all_verses = daily_verse_db.find({"day": {"$gte":int(day)},
+                                    "year": {"$gte":int(year)},
+                                    "month": {"$gte":int(month)}
+                                    }).skip(skip_value).limit(30).sort([("day", pymongo.DESCENDING),
+                                                                        ("month", pymongo.DESCENDING)])
         verse_list = []
         for verse in all_verses:
             verse_list.append(verse)

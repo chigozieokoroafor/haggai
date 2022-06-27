@@ -11,7 +11,7 @@ theme = Blueprint("themes", __name__, url_prefix="/api/haggai/theme")
 date = datetime.utcnow()
 date_ = date.strftime("%Y-%m-%d %H:%M:%S" ) 
 
-@theme.route("/", methods=["POST", "GET", "PUT"])
+@theme.route("/", methods=["POST", "GET", "PUT", "DELETE"])
 def themes():
     theme_list_ = []
     if request.method == "GET":
@@ -42,19 +42,27 @@ def themes():
         #print(info_dict)
         theme_db.insert_one(info_dict)
         #theme_db.insert_one({"light_image_url":theme_url_light,"dark_image_url":theme_url_dark,"theme_name":theme_name,"rank":int(str(theme_db.count_documents({}))+"0")+10,"date_uploaded":date_uploaded})
-        return ({"message":"theme uploaded", "type":"static"}, 200)
+        return {"message":"theme uploaded"}, 200
     
     if request.method == "PUT":
         info = request.json 
         id  = info.get("_id")
         info_dict = {}
         keys = [i for i in info.keys()]
-        print(keys)
+        
         for i in keys:
             info_dict[i] = info.get(str(i))
+
+        for key in keys:
+            if info_dict[key] == "":
+                info_dict.pop(key)
         info_dict.pop("_id")
-        theme_db.find_one_and_update({"_id":ObjectId(id)}, {"$set":info_dict})
+        theme_db.find_one_and_update({"_id":id}, {"$set":info_dict})
 
-        return {"message":"in progress"}
+        return {"message":"Theme Updated"}, 200
 
+    if request.method == "DELETE":
+        id = request.args.get("_id")
+        theme_db.find_one_and_delete({"_id":id})
+        return {"message":"Theme Deleted"}, 200
 

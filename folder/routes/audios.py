@@ -15,9 +15,9 @@ def base():
 def folder(first, second, third, fourth):
     if request.method == "POST":
         info = request.json
-        folder_image_url = info.get("image_url")
-        folder_name = info.get("name")
-        timestamp = info.get("timestamp")
+        #folder_image_url = info.get("image_url")
+        #folder_name = info.get("name")
+        #timestamp = info.get("timestamp")
         id = info.get("id")
         
         keys = [i for i in info.keys()]
@@ -25,7 +25,11 @@ def folder(first, second, third, fourth):
         for i in keys:
             data[i] = info.get(i)
         data["isFolder"] = True
-        data["is_finalFolder"] = False
+        
+        if data["is_finalFolder"]:
+            pass
+        else: data["is_finalFolder"] = False
+
         data["_id"] = id
         data.pop("id")
         #data.pop("latest")
@@ -87,7 +91,7 @@ def folder(first, second, third, fourth):
             if data[i] == "":
                 data.pop(i)
         
-        data.pop("latest")
+        #data.pop("latest")
         data.pop("id")
 
         try:
@@ -102,13 +106,17 @@ def folder(first, second, third, fourth):
                                 folders_.append(folder)
                             if latest != False:
                                 latest_db.delete_many({"type":"video"})
-                                latest_items = audio_db[first][second][third][fourth][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
+                                latest_items = audio_db[first][second][third][fourth][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
                                 item = []
                                 for items in latest_items:
-                                    items["type"] = "audio"
+                                    items["type"] = "image"
+                                    items["parent_id"] = id
                                     items.pop("_id")
                                     item.append(items)
+                                latest_db.delete_many({"type":"image"})
                                 latest_db.insert_many(item)
+                            else:
+                                latest_db.delete_many({"parent_id":id})
                             
                             return {"message":"folder updated", "folders":folders_}, 200
                         else:
@@ -119,13 +127,17 @@ def folder(first, second, third, fourth):
                                 folders_.append(folder)
                             if latest != False:
                                 latest_db.delete_many({"type":"video"})
-                                latest_items = audio_db[first][second][third][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
+                                latest_items = audio_db[first][second][third][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
                                 item = []
                                 for items in latest_items:
-                                    items["type"] = "audio"
+                                    items["type"] = "image"
+                                    items["parent_id"] = id
                                     items.pop("_id")
                                     item.append(items)
+                                latest_db.delete_many({"type":"image"})
                                 latest_db.insert_many(item)
+                            else:
+                                latest_db.delete_many({"parent_id":id})
                             return {"message":"folder updated", "folders":folders_}, 200
                     else:
                         audio_db[first][second].find_one_and_update({"_id":id}, {"$set": data})
@@ -135,13 +147,17 @@ def folder(first, second, third, fourth):
                             folders_.append(folder)
                         if latest != False:
                             latest_db.delete_many({"type":"video"})
-                            latest_items = audio_db[first][second][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
+                            latest_items = audio_db[first][second][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
                             item = []
                             for items in latest_items:
-                                items["type"] = "audio"
+                                items["type"] = "image"
+                                items["parent_id"] = id
                                 items.pop("_id")
                                 item.append(items)
+                            latest_db.delete_many({"type":"image"})
                             latest_db.insert_many(item)
+                        else:
+                            latest_db.delete_many({"parent_id":id})
                         return {"message":"folder updated", "folders":folders_}, 200
                 else:
                     audio_db[first].find_one_and_update({"_id":id}, {"$set":data})
@@ -151,13 +167,17 @@ def folder(first, second, third, fourth):
                         folders_.append(folder)
                     if latest != False:
                         latest_db.delete_many({"type":"video"})
-                        latest_items = audio_db[first][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
+                        latest_items = audio_db[first][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
                         item = []
                         for items in latest_items:
-                            items["type"] = "audio"
+                            items["type"] = "image"
+                            items["parent_id"] = id
                             items.pop("_id")
                             item.append(items)
+                        latest_db.delete_many({"type":"image"})
                         latest_db.insert_many(item)
+                    else:
+                        latest_db.delete_many({"parent_id":id})
                     return {"message":"folder updated", "folders":folders_}, 200    
             else:
                 audio_db.find_one_and_update({"_id":id}, {"$set":data})
@@ -167,13 +187,17 @@ def folder(first, second, third, fourth):
                     folders_.append(folder)
                 if latest != False:
                     latest_db.delete_many({"type":"video"})
-                    latest_items = audio_db[id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
+                    latest_items = audio_db[id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
                     item = []
                     for items in latest_items:
-                        items["type"] = "audio"
+                        items["type"] = "image"
+                        items["parent_id"] = id
                         items.pop("_id")
                         item.append(items)
+                    latest_db.delete_many({"type":"image"})
                     latest_db.insert_many(item)
+                else:
+                    latest_db.delete_many({"parent_id":id})
                 return {"message":"folder updated", "folders":folders_}, 200
         except AttributeError :
             return {"message":"Folder Specified Cannot Be Found"}, 400
@@ -181,57 +205,101 @@ def folder(first, second, third, fourth):
             return {"message":"Folder is empty"}, 400
 
     if request.method == "GET":
+        page = request.args.get("page")
+        skip_value = 30 * int(page)
         folder_list = []
         if first != "_":
             if second != "_":
                 if third != "_":
                     if fourth != "_":
-                            folders = audio_db[first][second][third][fourth].find({"isFolder":True}).sort("timestamp")
+                            folders = audio_db[first][second][third][fourth].find({"isFolder":True}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
                             for folder in folders:
                                 folder["id"] = folder["_id"]
                                 folder.pop("_id")
                                 folder_list.append(folder)
                             return {"folders":folder_list}, 200
                     else:
-                        folders = audio_db[first][second][third].find({"isFolder":True}).sort("timestamp")
+                        folders = audio_db[first][second][third].find({"isFolder":True}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
                         for folder in folders:
                             folder["id"] = folder["_id"]
                             folder.pop("_id")
                             folder_list.append(folder)
                         return {"folders":folder_list}, 200
                 else:
-                        folders = audio_db[first][second].find({"isFolder":True}).sort("timestamp")
+                        folders = audio_db[first][second].find({"isFolder":True}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
                         for folder in folders:
                             folder["id"] = folder["_id"]
                             folder.pop("_id")
                             folder_list.append(folder)
                         return {"folders":folder_list}, 200
             else:
-                folders = audio_db[first].find({"isFolder":True}).sort("timestamp")
+                folders = audio_db[first].find({"isFolder":True}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
                 for folder in folders:
                     folder["id"] = folder["_id"]
                     folder.pop("_id")
                     folder_list.append(folder)                
                 return {"folders":folder_list}, 200
         else:
-            folders = audio_db.find({"isFolder":True}).sort("timestamp")
+            folders = audio_db.find({"isFolder":True}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
             for folder in folders:
                 folder["id"] = folder["_id"]
                 folder.pop("_id")
                 folder_list.append(folder)
             return {"folders":folder_list}, 200
 
-@audios.route("Items/<first>/<second>/<third>/<fourth>/<fifth>", methods=["POST", "GET", "PUT"])
+    if request.method == "DELETE":
+        id = request.args.get("_id")
+        folder_list = []
+        if first != "_":
+            if second != "_":
+                if third != "_":
+                    if fourth != "_":
+                            audio_db[first][second][third][fourth].delete_one({"_id":id})
+                            audio_db[first][second][third][fourth][id].drop()
+                            updated_folders = audio_db[first][second][third][fourth].find({"isFolder":True})
+                            for i in updated_folders:
+                                folder_list.append(i)
+                            return {"folders":folder_list}, 200
+                    else:
+                        audio_db[first][second][third].delete_one({"_id":id})
+                        audio_db[first][second][third][id].drop()
+                        updated_folders = audio_db[first][second][third].find({"isFolder":True})
+                        for i in updated_folders:
+                            folder_list.append(i)
+                        return {"folders":folder_list}, 200
+                else:
+                        audio_db[first][second].delete_one({"_id":id})
+                        audio_db[first][second][id].drop()
+                        updated_folders = audio_db[first][second].find({"isFolder":True})
+                        for i in updated_folders:
+                            folder_list.append(i)
+                        return {"folders":folder_list}, 200
+            else:
+                audio_db[first].delete_one({"_id":id})
+                audio_db[first][id].drop()
+                updated_folders = audio_db[first].find({"isFolder":True})
+                for i in updated_folders:
+                    folder_list.append(i)
+                return {"folders":folder_list}, 200
+        else:
+            audio_db.delete_one({"_id":id})
+            audio_db[id].drop()
+            updated_folders = audio_db.find({"isFolder":True})
+            for i in updated_folders:
+                folder_list.append(i)
+            return {"folders":folder_list}, 200
+
+@audios.route("Items/<first>/<second>/<third>/<fourth>/<fifth>", methods=["POST", "GET", "PUT", "DELETE"])
 def items(first, second, third, fourth, fifth):
     if request.method == "POST":
         info = request.json
-        video_image = info.get("image_url")
-        video_name = info.get("image_name")
-        preacher = info.get("preacher")
-        video_url = info.get("audio_url")
-        timestamp = info.get("timestamp")
+        #video_image = info.get("image_url")
+        #video_name = info.get("image_name")
+        #preacher = info.get("preacher")
+        #video_url = info.get("audio_url")
+        #timestamp = info.get("timestamp")
         id = info.get("id")
-        latest = info.get("latest")
+        #latest = info.get("latest")
 
         keys = [i for i in info.keys()]
         data = {}
@@ -240,7 +308,7 @@ def items(first, second, third, fourth, fifth):
         data["isFolder"] = False
         data["_id"] = id
         data.pop("id")
-        data.pop("latest")
+        #data.pop("latest")
 
         if first!= "_":
             if second != "_" :
@@ -249,118 +317,80 @@ def items(first, second, third, fourth, fifth):
                         if fifth != "_":
                             audio_db[first][second][third][fourth][fifth].insert_one(data)
                             audio_db[first][second][third][fourth].find_one_and_update({"_id":fifth, "isFolder":True}, {"$set":{"is_finalFolder":True}})
-                            if latest == True:
-                                latest_db.delete_many({"type":"video"})
-                                data = audio_db[first][second][third][fourth][fifth].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
-                                data_list = []
-                                for item in data:
-                                    item["type"] = "audio"
-                                    item.pop("_id")
-                                    data_list.append(item)
-                                latest_db.insert_many(data_list)
+                            
                             return {"message":"uploaded successfuly"}, 200
 
                         else:
                             audio_db[first][second][third][fourth].insert_one(data)
                             audio_db[first][second][third].find_one_and_update({"_id":fourth, "isFolder":True}, {"$set":{"is_finalFolder":True}})
-                            if latest == True:
-                                latest_db.delete_many({"type":"video"})
-                                data = audio_db[first][second][third][fourth].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
-                                data_list = []
-                                for item in data:
-                                    item["type"] = "audio"
-                                    item.pop("_id")
-                                    data_list.append(item)
-                                latest_db.insert_many(data_list)
+                            
                             return {"message":"uploaded successfully"},200
                     else:
                             
                         audio_db[first][second][third].insert_one(data)
                         audio_db[first][second].find_one_and_update({"_id":third, "isFolder":True}, {"$set":{"is_finalFolder":True}})
-                        if latest == True:
-                            latest_db.delete_many({"type":"video"})
-                            data = audio_db[first][second][third].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
-                            data_list = []
-                            for item in data:
-                                item.pop("_id")
-                                item["type"] = "audio"
-                                data_list.append(item)
-                            latest_db.insert_many(data_list)
+                        
                         return {"message": "uploaded succesfully"}, 200
                 else:
                             
                     audio_db[first][second].insert_one(data)  
                     audio_db[first].find_one_and_update({"_id":second, "isFolder":True}, {"$set":{"is_finalFolder":True}})
-                    if latest == True:
-                        latest_db.delete_many({"type":"video"})
-                        data = audio_db[first][second].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
-                        data_list = []
-                        for item in data:
-                            item.pop("_id")
-                            item["type"] = "audio"
-                            data_list.append(item)
-                        latest_db.insert_many(data_list)
+                    
                     return{"message":"uploaded successfully"}, 200
             else:
                 
                 audio_db[first].insert_one(data)
                 audio_db.find_one_and_update({"_id":first, "isFolder":True}, {"$set":{"is_finalFolder":True}})
-                if latest == True:
-                    latest_db.delete_many({"type":"video"})
-                    data = audio_db[first].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(5)
-                    data_list = []
-                    for item in data:
-                        item.pop("_id")
-                        item["type"] = "audio"
-                        data_list.append(item)
-                    latest_db.insert_many(data_list)
+                
                 return {"message":"uploaded successfully"}, 200
         else:
             return {"message":"No Folder Specified"}, 400
 
     if request.method == "GET":
+        page = request.args.get("page")
+        skip_value = 30 * int(page)
         doc_list=[]
         if first != "_":
             if second != "_":
                 if third != "_":
                     if fourth != "_":
                         if fifth != "_":
-                            documents = audio_db[first][second][third][fourth][fifth].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(15)
+                            documents = audio_db[first][second][third][fourth][fifth].find({"isFolder":False}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
                             for doc_ in documents :
                                 doc_["id"] = doc_["_id"]
                                 doc_.pop("_id")
                                 doc_list.append(doc_)
                             return {"items":doc_list}, 200
                         else:
-                            documents = audio_db[first][second][third][fourth].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(15)
+                            documents = audio_db[first][second][third][fourth].find({"isFolder":False}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
                             for doc_ in documents :
                                 doc_["id"] = doc_["_id"]
                                 doc_.pop("_id")
                                 doc_list.append(doc_)
                             return {"items":doc_list}, 200
                     else:
-                        documents = audio_db[first][second][third].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(15)
+                        documents = audio_db[first][second][third].find({"isFolder":False}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
                         for doc_ in documents :
                             doc_["id"] = doc_["_id"]
                             doc_.pop("_id")
                             doc_list.append(doc_)
                         return {"items":doc_list}, 200
                 else:
-                    documents = audio_db[first][second].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(15)
+                    documents = audio_db[first][second].find({"isFolder":False}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
                     for doc_ in documents :
                         doc_["id"] = doc_["_id"]
                         doc_.pop("_id")
                         doc_list.append(doc_)
                     return {"items":doc_list}, 200
             else:
-                documents = audio_db[first].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(15)
+                documents = audio_db[first].find({"isFolder":False}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
                 for doc_ in documents :
                     doc_["id"] = doc_["_id"]
                     doc_.pop("_id")
                     doc_list.append(doc_)
                 return {"items":doc_list}, 200
         else:
-            documents = audio_db.find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(15)
+            documents = audio_db.find({"isFolder":False}).skip(skip_value).sort([("timestamp",pymongo.DESCENDING)]).limit(30)
             for doc_ in documents :
                 doc_["id"] = doc_["_id"]
                 doc_.pop("_id")
@@ -370,7 +400,7 @@ def items(first, second, third, fourth, fifth):
     if request.method == "PUT":
         info = request.json
         id  = info.get("id")
-        latest = info.get("latest")
+        #latest = info.get("latest")
         keys = [i for i in info.keys()]
         data = {}
         for i in keys:
@@ -391,15 +421,8 @@ def items(first, second, third, fourth, fifth):
                                     lis_["id"] = lis_["_id"]
                                     lis_.pop("_id")
                                     doc_list.append(lis_)
-                                if latest == True:
-                                    data = audio_db[first][second][third][fourth][fifth].find()
-                                    data_list = []
-                                    for item in data:
-                                        item.pop("_id")
-                                        item["type"] = "audio"
-                                        data_list.append(item)
-                                    latest_db.insert_many(data_list)
-                                return {"message":"Document updated successfully", "videos":doc_list}, 200
+                                
+                                return {"message":"Document updated successfully", "audios":doc_list}, 200
                             else:
                                 audio_db[first][second][third][fourth].find_one_and_update({"_id":id}, {"$set":data})
                                 lis = audio_db[first][second][third][fourth].find()
@@ -407,15 +430,8 @@ def items(first, second, third, fourth, fifth):
                                     lis_["id"] = lis_["_id"]
                                     lis_.pop("_id")
                                     doc_list.append(lis_)
-                                if latest == True:
-                                    data = audio_db[first][second][third][fourth].find()
-                                    data_list = []
-                                    for item in data:
-                                        item.pop("_id")
-                                        item["type"] = "audio"
-                                        data_list.append(item)
-                                    latest_db.insert_many(data_list)
-                                return {"message":"Document updated successfully", "videos":doc_list}, 200
+                                
+                                return {"message":"Document updated successfully", "audios":doc_list}, 200
                         else:
                             audio_db[first][second][third].find_one_and_update({"_id":id}, {"$set":data})
                             lis = audio_db[first][second][third].find()
@@ -423,15 +439,8 @@ def items(first, second, third, fourth, fifth):
                                 lis_["id"] = lis_["_id"]
                                 lis_.pop("_id")
                                 doc_list.append(lis_)
-                            if latest == True:
-                                data = audio_db[first][second][third].find()
-                                data_list = []
-                                for item in data:
-                                    item.pop("_id")
-                                    item["type"] = "audio"
-                                    data_list.append(item)
-                                latest_db.insert_many(data_list)
-                            return {"message":"Document updated successfully", "vidoes":doc_list}, 200
+                            
+                            return {"message":"Document updated successfully", "audios":doc_list}, 200
                     else:
                         audio_db[first][second].find_one_and_update({"_id":id}, {"$set":data})
                         lis = audio_db[first][second].find()
@@ -439,15 +448,8 @@ def items(first, second, third, fourth, fifth):
                             lis_["id"] = lis_["_id"]
                             lis_.pop("_id")
                             doc_list.append(lis_)
-                        if latest == True:
-                            data = audio_db[first][second].find()
-                            data_list = []
-                            for item in data:
-                                item.pop("_id")
-                                item["type"] = "audio"
-                                data_list.append(item)
-                            latest_db.insert_many(data_list)
-                        return {"message":"Document updated successfully", "videos":doc_list}, 200
+                        
+                        return {"message":"Document updated successfully", "audios":doc_list}, 200
                 else:
                     audio_db[first].find_one_and_update({"_id":id}, {"$set":data})
                     lis = audio_db[first].find()
@@ -455,18 +457,52 @@ def items(first, second, third, fourth, fifth):
                         lis_["id"] = lis_["_id"]
                         lis_.pop("_id")
                         doc_list.append(lis_)
-                    if latest == True:
-                        data = audio_db[first][second].find()
-                        data_list = []
-                        for item in data:
-                            item.pop("_id")
-                            item["type"] = "audio"
-                            data_list.append(item)
-                        latest_db.insert_many(data_list)
-                    return {"message":"Document updated successfully", "videos":doc_list}, 200
+                    
+                    return {"message":"Document updated successfully", "audios":doc_list}, 200
             else:
                 return {"message":"No documents to update"}, 200
         except AttributeError:
             return {"message":"Incorrect Document ID passed"}, 400
         
+    if request.method == "DELETE":
+        id = request.args.get("_id")
+        folder_list = []
+        if first != "_":
+            if second != "_":
+                if third != "_":
+                    if fourth != "_":
+                            audio_db[first][second][third][fourth].delete_one({"_id":id})
+                            #audio_db[first][second][third][fourth][id].drop()
+                            updated_folders = audio_db[first][second][third][fourth].find({"isFolder":False})
+                            for i in updated_folders:
+                                folder_list.append(i)
+                            return {"folders":folder_list}, 200
+                    else:
+                        audio_db[first][second][third].delete_one({"_id":id})
+                        #audio_db[first][second][third][id].drop()
+                        updated_folders = audio_db[first][second][third].find({"isFolder":False})
+                        for i in updated_folders:
+                            folder_list.append(i)
+                        return {"folders":folder_list}, 200
+                else:
+                        audio_db[first][second].delete_one({"_id":id})
+                        #audio_db[first][second][id].drop()
+                        updated_folders = audio_db[first][second].find({"isFolder":False})
+                        for i in updated_folders:
+                            folder_list.append(i)
+                        return {"folders":folder_list}, 200
+            else:
+                audio_db[first].delete_one({"_id":id})
+                #audio_db[first][id].drop()
+                updated_folders = audio_db[first].find({"isFolder":False})
+                for i in updated_folders:
+                    folder_list.append(i)
+                return {"folders":folder_list}, 200
+        else:
+            audio_db.delete_one({"_id":id})
+            #audio_db[id].drop()
+            updated_folders = audio_db.find({"isFolder":False})
+            for i in updated_folders:
+                folder_list.append(i)
+            return {"folders":folder_list}, 200
    
