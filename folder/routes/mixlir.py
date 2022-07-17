@@ -39,10 +39,15 @@ def home_mixlir():
             return {"message":message}, 400
         
     if request.method == "PUT":
+        info = request.json
         keys = [i for i in info.keys()]
         data = {}
         for key in keys:
             data[key] = info.get(key)
+
+        for key in keys:
+            if data[key] == "":
+                data.pop(key)
 
         mixlir_db.find_one_and_update({"_id":data["_id"]},
                                       {"$set":data})

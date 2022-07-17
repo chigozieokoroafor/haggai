@@ -1,5 +1,6 @@
 from flask import Blueprint
 from flask import request
+import pymongo
 from folder.database import sermon_db
 
 sermons = Blueprint("sermons", __name__, url_prefix="/api/haggai")
@@ -7,7 +8,10 @@ sermons = Blueprint("sermons", __name__, url_prefix="/api/haggai")
 @sermons.route("/sermon", methods = ["GET", "POST", "PUT", "DELETE"])
 def sermon():
     if request.method == "GET":
-        all_sermons = sermon_db.find()
+        page = int(request.args.get("page"))
+        offset = page * 30
+
+        all_sermons = sermon_db.find().skip(offset).limit(30).sort("rank", pymongo.DESCENDING)
         sermons = [i for i in all_sermons]
         sotw = sermon_db.find_one({"sermon_of_the_week":True})
         if sotw == None:
@@ -19,7 +23,7 @@ def sermon():
         
     if request.method == "POST":
         info = request.json
-        week_sermon = info.get("sermon_of_the_week")
+        #week_sermon = info.get("sermon_of_the_week")
 
         keys = [i for i in info.keys()]
         data = {}
@@ -47,6 +51,7 @@ def sermon():
         for key in keys:
             if data[key] == "":
                 data.pop(key)
+                
         data.pop("_id")
         
         sermon_db.find_one_and_update({"_id":id}, {"$set":data})
