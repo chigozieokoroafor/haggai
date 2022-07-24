@@ -6,12 +6,12 @@ from datetime import datetime
 
 
 
-theme = Blueprint("themes", __name__, url_prefix="/api/haggai/theme")
+theme = Blueprint("themes", __name__, url_prefix="/api/haggai")
 
 date = datetime.utcnow()
 date_ = date.strftime("%Y-%m-%d %H:%M:%S" ) 
 
-@theme.route("/", methods=["POST", "GET", "PUT", "DELETE"])
+@theme.route("/theme", methods=["POST", "GET", "PUT", "DELETE"])
 def themes():
     theme_list_ = []
     if request.method == "GET":

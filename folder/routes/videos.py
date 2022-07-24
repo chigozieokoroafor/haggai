@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from folder.database import videos_db, latest_db
+from folder.database import  latest_db, videos_db#, audio_db
 import pymongo
 from pymongo.errors import DuplicateKeyError
 video = Blueprint("videos", __name__, url_prefix="/api/haggai/video")
@@ -124,11 +124,11 @@ def folder(first, second, third, fourth):
                                 latest_items = videos_db[first][second][third][fourth][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
                                 item = []
                                 for items in latest_items:
-                                    items["type"] = "image"
+                                    items["type"] = "video"
                                     items["parent_id"] = id
                                     items.pop("_id")
                                     item.append(items)
-                                latest_db.delete_many({"type":"image"})
+                                latest_db.delete_many({"type":"video"})
                                 latest_db.insert_many(item)
                             else:
                                 latest_db.delete_many({"parent_id":id})
@@ -143,14 +143,14 @@ def folder(first, second, third, fourth):
                                 folders_.append(folder)
                             if latest != False:
                                 latest_db.delete_many({"type":"video"})
-                                latest_items = videos_db[first][second][third][fourth][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
+                                latest_items = videos_db[first][second][third][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
                                 item = []
                                 for items in latest_items:
-                                    items["type"] = "image"
+                                    items["type"] = "video"
                                     items["parent_id"] = id
                                     items.pop("_id")
                                     item.append(items)
-                                latest_db.delete_many({"type":"image"})
+                                latest_db.delete_many({"type":"video"})
                                 latest_db.insert_many(item)
                             else:
                                 latest_db.delete_many({"parent_id":id})
@@ -163,14 +163,14 @@ def folder(first, second, third, fourth):
                             folders_.append(folder)
                         if latest != False:
                             latest_db.delete_many({"type":"video"})
-                            latest_items = videos_db[first][second][third][fourth][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
+                            latest_items = videos_db[first][second][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
                             item = []
                             for items in latest_items:
-                                items["type"] = "image"
+                                items["type"] = "video"
                                 items["parent_id"] = id
                                 items.pop("_id")
                                 item.append(items)
-                            latest_db.delete_many({"type":"image"})
+                            latest_db.delete_many({"type":"video"})
                             latest_db.insert_many(item)
                         else:
                             latest_db.delete_many({"parent_id":id})
@@ -183,14 +183,14 @@ def folder(first, second, third, fourth):
                         folders_.append(folder)
                     if latest != False:
                         latest_db.delete_many({"type":"video"})
-                        latest_items = videos_db[first][second][third][fourth][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
+                        latest_items = videos_db[first][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
                         item = []
                         for items in latest_items:
-                            items["type"] = "image"
+                            items["type"] = "video"
                             items["parent_id"] = id
                             items.pop("_id")
                             item.append(items)
-                        latest_db.delete_many({"type":"image"})
+                        latest_db.delete_many({"type":"video"})
                         latest_db.insert_many(item)
                     else:
                         latest_db.delete_many({"parent_id":id})
@@ -203,14 +203,14 @@ def folder(first, second, third, fourth):
                     folders_.append(folder)
                 if latest != False:
                     latest_db.delete_many({"type":"video"})
-                    latest_items = videos_db[first][second][third][fourth][id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
+                    latest_items = videos_db[id].find({"isFolder":False}).sort("timestamp", pymongo.DESCENDING).limit(30)
                     item = []
                     for items in latest_items:
-                        items["type"] = "image"
+                        items["type"] = "video"
                         items["parent_id"] = id
                         items.pop("_id")
                         item.append(items)
-                    latest_db.delete_many({"type":"image"})
+                    latest_db.delete_many({"type":"video"})
                     latest_db.insert_many(item)
                 else:
                     latest_db.delete_many({"parent_id":id})

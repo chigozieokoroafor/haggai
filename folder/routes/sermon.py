@@ -11,7 +11,7 @@ def sermon():
         page = int(request.args.get("page"))
         offset = page * 30
 
-        all_sermons = sermon_db.find().skip(offset).limit(30).sort("rank", pymongo.DESCENDING)
+        all_sermons = sermon_db.find().skip(offset).limit(30).sort("timestamp", pymongo.DESCENDING)
         sermons = [i for i in all_sermons]
         sotw = sermon_db.find_one({"sermon_of_the_week":True})
         if sotw == None:
